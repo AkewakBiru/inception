@@ -2,7 +2,7 @@
 FROM debian:bullseye
 
 RUN set -e; apt-get update \ 
-	&& apt-get install -y wget tar php php-curl php-fpm php-mysqlnd
+	&& apt-get install -y php php-fpm php-bcmath php-soap php-mysqli php-xml php-intl php-curl php-mbstring php-gd php-zip
 	#&& wget -O wordpress.tar.gz https://wordpress.org/latest.tar.gz \ 
 	#&& mkdir -p /var/www/html \ 
 	#&& cd /var/www/html && tar -xvzf /wordpress.tar.gz
@@ -14,11 +14,21 @@ RUN mkdir -p /var/www \
 	&& mv wp-cli.phar /usr/local/bin/wp \ 
 	&& wp core download --allow-root
 
-RUN cd /var/www && mv wp-config-sample.php wp-config.php && sed -i '/put your unique phrase here/d; \
-	s/database_name_here/dbname/; \
-	s/username_here/username/; \
-	s/password_here/password/; \
-	s/localhost/mariadb/' wp-config.php
+ARG MYSQL_USER MYSQL_PASSWORD MYSQL_DB
+
+RUN cd /var/www && mv wp-config-sample.php wp-config.php && sed -i "/put your unique phrase here/d; \
+	s/database_name_here/$MYSQL_DB/; \
+	s/username_here/$MYSQL_USER/; \
+	s/password_here/$MYSQL_PASSWORD/; \
+	s/localhost/mariadb/" wp-config.php
+
+ARG WCL="wp --allow-root --path=/var/www/" WPAD_USER WP_PASS
+
+ENV WCL=$WP
+
+CMD ["tail", "-f"]
+
+# RUN $WP --admin_user=
 
 #RUN cat <<EOF > wp-config.php
 #<?php

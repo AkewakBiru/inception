@@ -26,7 +26,7 @@ RUN set -eu; apt-get update \
 
 COPY conf/nginx.conf /etc/nginx/
 
-EXPOSE 80 443
+EXPOSE 443
 
 USER $UID
 

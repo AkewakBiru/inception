@@ -1,16 +1,16 @@
 FROM debian:bullseye
 
-RUN set -e; apt update \ 
-	&& apt install -y mariadb-server
+ARG MYSQL_USER MYSQL_PASSWORD MYSQL_DB
 
-RUN sed -i 's/127.0.0.1/0.0.0.0/' /etc/mysql/mariadb.conf.d/50-server.cnf
-
-RUN service mariadb restart && \
-	mariadb -e "\
-	CREATE USER 'test'@'%' IDENTIFIED BY 'hardpass';\
-	CREATE DATABASE IF NOT EXISTS login; \
-	GRANT ALL PRIVILEGES ON login.* TO 'test'@'%';\
-	FLUSH PRIVILEGES;"
+RUN set -eu; apt update \ 
+	&& apt install -y mariadb-server \
+	&& sed -i 's/127.0.0.1/0.0.0.0/' /etc/mysql/mariadb.conf.d/50-server.cnf \
+	&& set -eu; service mariadb restart && \
+		mariadb -e "\
+		CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';\
+		CREATE DATABASE IF NOT EXISTS $MYSQL_DB; \
+		GRANT ALL PRIVILEGES ON $MYSQL_DB.* TO '$MYSQL_USER'@'%';\
+		FLUSH PRIVILEGES;"
 
 USER mysql
 

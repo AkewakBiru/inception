@@ -1,5 +1,6 @@
 build:
 	@docker compose -f ./srcs/docker-compose.yml build -q
+
 start:
 	#@docker compose up
 	@docker compose -f ./srcs/docker-compose.yml up
@@ -14,4 +15,3 @@ stop:
 
 remove:
 	@docker compose -f ./srcs/docker-compose.yml down --rmi all
-

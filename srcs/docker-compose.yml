@@ -4,22 +4,66 @@ services:
   mariadb:
     build:
       context: ./requirements/mariadb
+      args:
+        - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+        - MYSQL_USER=${MYSQL_USER}
+        - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+        - MYSQL_DB=${MYSQL_DB}
     image: mariadb
     container_name: mariadb
     networks:
       - myNet
     volumes:
       - mariadb-vol:/var/lib/mysql
-    expose: "3306"
+    expose: 
+      - "3306"
 
   nginx:
     build:
       context: ./requirements/nginx
+      args:
+        - DOMAIN_NAME=${DOMAIN_NAME}
+        - CERTS_KEY=${CERTS_KEY}
+        - CERTS_CRT=${CERTS_CRT}
     image: nginx
     container_name: nginx
     networks:
       - myNet
-    ports: "443:443"
+    volumes:
+      - mariadb-vol:/var/lib/mysql
+      - wordpress-vol:/var/www/
+    ports: 
+      - "443:443"
+    depends_on:
+      - wordpress
+
+  wordpress:
+    build:
+      context: ./requirements/wordpress
+      args:
+        - DOMAIN_NAME=${DOMAIN_NAME}
+        - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+        - MYSQL_USER=${MYSQL_USER}
+        - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+        - MYSQL_DB=${MYSQL_DB}
+    image: wordpress
+    container_name: wordpress
+    networks:
+      - myNet
+    volumes:
+      - wordpress-vol:/var/www/
+    expose: 
+      - "9000"
+    depends_on:
+      - mariadb
+
+  test:
+    build:
+      context: ./requirements/test
+    image: test
+    container_name: test
+    networks:
+      - myNet
 
 networks:
   myNet:
@@ -30,5 +74,10 @@ volumes:
     driver_opts:
       type: local
       o: "bind"
-      device: /home/debian12/data
-
+      device: /Users/akewakbiru/data2
+  wordpress-vol:
+    driver: local
+    driver_opts:
+      type: local
+      o: "bind"
+      device: /Users/akewakbiru/wordpress
