@@ -8,6 +8,9 @@ services:
     container_name: mariadb
     networks:
       - myNet
+    volumes:
+      - mariadb-vol:/var/lib/mysql
+    expose: "3306"
 
   nginx:
     build:
@@ -16,10 +19,16 @@ services:
     container_name: nginx
     networks:
       - myNet
+    ports: "443:443"
 
 networks:
   myNet:
 
 volumes:
-  mariadb-vol: 
+  mariadb-vol:
+    driver: local
+    driver_opts:
+      type: local
+      o: "bind"
+      device: /home/debian12/data
 
