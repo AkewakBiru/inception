@@ -1,5 +1,5 @@
 build:
-	@docker compose -f ./srcs/docker-compose.yml build -q
+	@docker compose -f ./srcs/docker-compose.yml build
 
 start:
 	#@docker compose up

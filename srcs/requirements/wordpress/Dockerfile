@@ -1,48 +1,49 @@
-# syntax=docker/dockerfile:1.3-labs
 FROM debian:bullseye
 
-RUN set -e; apt-get update \ 
-	&& apt-get install -y php php-fpm php-bcmath php-soap php-mysqli php-xml php-intl php-curl php-mbstring php-gd php-zip
-	#&& wget -O wordpress.tar.gz https://wordpress.org/latest.tar.gz \ 
-	#&& mkdir -p /var/www/html \ 
-	#&& cd /var/www/html && tar -xvzf /wordpress.tar.gz
+ARG wcli="wp --allow-root --path=/var/www/" \
+	MYSQL_USER \
+	MYSQL_PASSWORD \
+	MYSQL_DB \
+	MYSQL_HOST \
+    WPADMIN_USER \
+    WPADMIN_PASS \
+	WPADMIN_EMAIL \
+	WPSTD_USER \
+	WPSTD_PASS
 
-RUN mkdir -p /var/www \ 
-	&& cd /var/www \
-	&& wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \ 
+RUN set -e; apt-get update \ 
+	&& apt-get install -y wget php php-fpm php-bcmath php-soap php-mysqli php-xml php-intl php-curl php-mbstring php-gd php-zip
+
+COPY entrypoint.sh .
+
+RUN wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \ 
 	&& chmod +x wp-cli.phar \ 
 	&& mv wp-cli.phar /usr/local/bin/wp \ 
-	&& wp core download --allow-root
+	&& $wcli core download\
+	&& chmod +x /entrypoint.sh
 
-ARG MYSQL_USER MYSQL_PASSWORD MYSQL_DB
+# RUN set -eu; cd /var/www && wp config create --allow-root --dbname=$MYSQL_DB --dbuser=$MYSQL_USER --dbhost=$MYSQL_HOST --dbpass=$MYSQL_PASSWORD \
+# 	&& $wcli core install --url=abiru.42.fr --title=inception --admin_user=$WPADMIN_USER \
+# 						--admin_password=$WPADMIN_PASS --admin_email=$WPADMIN_EMAIL \
+# 	&& $wcli user create $WPSTD_USER test@gmail.com --role=author --user_pass=$WPSTD_PASS
+# RUN cd /var/www && mv wp-config-sample.php wp-config.php && sed -i "/put your unique phrase here/d; \
+# 	s/database_name_here/$MYSQL_DB/; \
+# 	s/username_here/$MYSQL_USER/; \
+# 	s/password_here/$MYSQL_PASSWORD/; \
+# 	s/localhost/mariadb/" wp-config.php
+	# && $wcli core install --url=abiru.42.fr --title=inception --admin_user=$WPADMIN_USER \
+	# 					--admin_password=$WPADMIN_PASS --admin_email=$WPADMIN_EMAIL \
+	# && $wcli user create $WPSTD_USER test@gmail.com --role=author --user_pass=$WPSTD_PASS
 
-RUN cd /var/www && mv wp-config-sample.php wp-config.php && sed -i "/put your unique phrase here/d; \
-	s/database_name_here/$MYSQL_DB/; \
-	s/username_here/$MYSQL_USER/; \
-	s/password_here/$MYSQL_PASSWORD/; \
-	s/localhost/mariadb/" wp-config.php
+ENV wcli=$wcli MYSQL_HOST=$MYSQL_HOST \
+	MYSQL_USER=$MYSQL_USER \
+	MYSQL_PASSWORD=$MYSQL_PASSWORD \
+	MYSQL_DB=$MYSQL_DB \
+	MYSQL_HOST=$MYSQL_HOST \
+    WPADMIN_USER=$WPADMIN_USER \
+    WPADMIN_PASS=$WPADMIN_PASS \
+	WPADMIN_EMAIL=$WPADMIN_EMAIL \
+	WPSTD_USER=$WPSTD_USER \
+	WPSTD_PASS=WPSTD_PASS
 
-ARG WCL="wp --allow-root --path=/var/www/" WPAD_USER WP_PASS
-
-ENV WCL=$WP
-
-CMD ["tail", "-f"]
-
-# RUN $WP --admin_user=
-
-#RUN cat <<EOF > wp-config.php
-#<?php
-#define( 'DB_NAME', 'test' );
-#define( 'DB_USER', 'dbuser' );
-#define( 'DB_PASSWORD', 'dbpass' );
-#define( 'DB_HOST', 'mariadb' );
-#define( 'DB_CHARSET', 'utf8' ); 
-#define( 'DB_COLLATE', '' ); 
-#"$table_prefix" = 'wp_'; 
-#define( 'WP_DEBUG', false );
-#if ( ! defined( 'ABSPATH' ) ) { 
-#	define( 'ABSPATH', __DIR__ . '/' ); 
-#} 
-#require_once ABSPATH . 'wp-settings.php';
-#EOF
-
+CMD ["./entrypoint.sh"]

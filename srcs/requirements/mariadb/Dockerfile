@@ -14,4 +14,6 @@ RUN set -eu; apt update \
 
 USER mysql
 
+ENV MYSQL_DB=$MYSQL_DB
+
 CMD ["mariadbd"]
