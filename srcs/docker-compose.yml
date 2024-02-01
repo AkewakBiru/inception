@@ -31,7 +31,7 @@ services:
       - myNet
     volumes:
       - mariadb-vol:/var/lib/mysql
-      - wordpress-vol:/var/www/
+      - wordpress-vol:/var/www/html
     ports: 
       - "443:443"
     depends_on:
@@ -57,7 +57,7 @@ services:
     networks:
       - myNet
     volumes:
-      - wordpress-vol:/var/www/
+      - wordpress-vol:/var/www/html
     expose: 
       - "9000"
     depends_on:

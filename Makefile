@@ -15,3 +15,7 @@ stop:
 
 remove:
 	@docker compose -f ./srcs/docker-compose.yml down --rmi all
+
+delete: remove
+	@rm -rf ~/data2/*
+	@rm -rf ~/wordpress/*

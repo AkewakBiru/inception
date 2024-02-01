@@ -1,6 +1,6 @@
 FROM debian:bullseye
 
-ARG wcli="wp --allow-root --path=/var/www/" \
+ARG wcli="wp --allow-root --path=/var/www/html" \
 	MYSQL_USER \
 	MYSQL_PASSWORD \
 	MYSQL_DB \
@@ -19,8 +19,11 @@ COPY entrypoint.sh .
 RUN wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \ 
 	&& chmod +x wp-cli.phar \ 
 	&& mv wp-cli.phar /usr/local/bin/wp \ 
-	&& $wcli core download\
-	&& chmod +x /entrypoint.sh
+	&& mkdir -p /var/www/html \
+	&& $wcli core download
+
+RUN chmod +x /entrypoint.sh && sed -i "s|listen = /run/php/php7.4-fpm.sock|listen = 9000|" /etc/php/7.4/fpm/pool.d/www.conf
+
 
 # RUN set -eu; cd /var/www && wp config create --allow-root --dbname=$MYSQL_DB --dbuser=$MYSQL_USER --dbhost=$MYSQL_HOST --dbpass=$MYSQL_PASSWORD \
 # 	&& $wcli core install --url=abiru.42.fr --title=inception --admin_user=$WPADMIN_USER \
@@ -45,5 +48,15 @@ ENV wcli=$wcli MYSQL_HOST=$MYSQL_HOST \
 	WPADMIN_EMAIL=$WPADMIN_EMAIL \
 	WPSTD_USER=$WPSTD_USER \
 	WPSTD_PASS=WPSTD_PASS
+
+EXPOSE 9000
+
+RUN if [ ! -d "/run/php" ]; then \
+		mkdir -p /run/php; \
+	fi && \
+	chown www-data:www-data -R /var/log && \
+	chown www-data:www-data -R /run/php 
+
+USER www-data
 
 CMD ["./entrypoint.sh"]
