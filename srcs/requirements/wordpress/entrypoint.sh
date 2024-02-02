@@ -37,8 +37,4 @@ if [[ $std_user_ct -lt 1 ]]; then
 	$wcli user create $WPSTD_USER test123@gmail.com --role=author --user_pass=$WPSTD_PASS
 fi
 
-# if [ ! -d "/run/php" ]; then
-# 	mkdir -p /run/php
-# fi
-
 exec php-fpm7.4 -F

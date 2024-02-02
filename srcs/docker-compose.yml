@@ -17,6 +17,7 @@ services:
       - mariadb-vol:/var/lib/mysql
     expose: 
       - "3306"
+    restart: on-failure
 
   nginx:
     build:
@@ -36,6 +37,7 @@ services:
       - "443:443"
     depends_on:
       - wordpress
+    restart: on-failure
 
   wordpress:
     build:
@@ -81,11 +83,11 @@ volumes:
     driver_opts:
       type: local
       o: "bind"
-      device: /Users/akewakbiru/data2
+      device: $HOME/data/mariadb
 
   wordpress-vol:
     driver: local
     driver_opts:
       type: local
       o: "bind"
-      device: /Users/akewakbiru/wordpress
+      device: $HOME/data/wordpress

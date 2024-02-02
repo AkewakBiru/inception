@@ -11,52 +11,37 @@ ARG wcli="wp --allow-root --path=/var/www/html" \
 	WPSTD_USER \
 	WPSTD_PASS
 
-RUN set -e; apt-get update \ 
-	&& apt-get install -y wget php php-fpm php-bcmath php-soap php-mysqli php-xml php-intl php-curl php-mbstring php-gd php-zip
+RUN set -e; \
+	apt-get update \ 
+	&& apt-get install -y wget php php-fpm php-bcmath php-soap \
+		php-mysqli php-xml php-intl php-curl php-mbstring php-gd php-zip
 
 COPY entrypoint.sh .
 
-RUN wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \ 
+RUN set -eu; \
+	chmod +x /entrypoint.sh \
+	&& wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \ 
 	&& chmod +x wp-cli.phar \ 
 	&& mv wp-cli.phar /usr/local/bin/wp \ 
 	&& mkdir -p /var/www/html \
-	&& $wcli core download
+	&& wp --allow-root --path=/var/www/html core download \
+	&& sed -i "s|listen = /run/php/php7.4-fpm.sock|listen = 9000|" /etc/php/7.4/fpm/pool.d/www.conf \
+	&& mkdir -p /run/php \
+	&& chown -R www-data:www-data /var/log /run/php \
+	&& rm -rf /var/lib/apt/lists/*
 
-RUN chmod +x /entrypoint.sh && sed -i "s|listen = /run/php/php7.4-fpm.sock|listen = 9000|" /etc/php/7.4/fpm/pool.d/www.conf
-
-
-# RUN set -eu; cd /var/www && wp config create --allow-root --dbname=$MYSQL_DB --dbuser=$MYSQL_USER --dbhost=$MYSQL_HOST --dbpass=$MYSQL_PASSWORD \
-# 	&& $wcli core install --url=abiru.42.fr --title=inception --admin_user=$WPADMIN_USER \
-# 						--admin_password=$WPADMIN_PASS --admin_email=$WPADMIN_EMAIL \
-# 	&& $wcli user create $WPSTD_USER test@gmail.com --role=author --user_pass=$WPSTD_PASS
-# RUN cd /var/www && mv wp-config-sample.php wp-config.php && sed -i "/put your unique phrase here/d; \
-# 	s/database_name_here/$MYSQL_DB/; \
-# 	s/username_here/$MYSQL_USER/; \
-# 	s/password_here/$MYSQL_PASSWORD/; \
-# 	s/localhost/mariadb/" wp-config.php
-	# && $wcli core install --url=abiru.42.fr --title=inception --admin_user=$WPADMIN_USER \
-	# 					--admin_password=$WPADMIN_PASS --admin_email=$WPADMIN_EMAIL \
-	# && $wcli user create $WPSTD_USER test@gmail.com --role=author --user_pass=$WPSTD_PASS
-
-ENV wcli=$wcli MYSQL_HOST=$MYSQL_HOST \
-	MYSQL_USER=$MYSQL_USER \
-	MYSQL_PASSWORD=$MYSQL_PASSWORD \
-	MYSQL_DB=$MYSQL_DB \
-	MYSQL_HOST=$MYSQL_HOST \
-    WPADMIN_USER=$WPADMIN_USER \
-    WPADMIN_PASS=$WPADMIN_PASS \
-	WPADMIN_EMAIL=$WPADMIN_EMAIL \
-	WPSTD_USER=$WPSTD_USER \
-	WPSTD_PASS=WPSTD_PASS
+ENV MYSQL_USER=${MYSQL_USER} \
+	MYSQL_PASSWORD=${MYSQL_PASSWORD} \
+	MYSQL_DB=${MYSQL_DB} \
+	MYSQL_HOST=${MYSQL_HOST} \
+    WPADMIN_USER=${WPADMIN_USER} \
+    WPADMIN_PASS=${WPADMIN_PASS} \
+	WPADMIN_EMAIL=${WPADMIN_EMAIL} \
+	WPSTD_USER=${WPSTD_USER} \
+	WPSTD_PASS=${WPSTD_PASS}
 
 EXPOSE 9000
 
-RUN if [ ! -d "/run/php" ]; then \
-		mkdir -p /run/php; \
-	fi && \
-	chown www-data:www-data -R /var/log && \
-	chown www-data:www-data -R /run/php 
-
 USER www-data
 
-CMD ["./entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]
