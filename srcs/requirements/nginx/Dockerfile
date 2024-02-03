@@ -4,7 +4,7 @@ ARG CERTS_KEY CERTS_CRT
 
 RUN set -eu; \
 	apt-get update \
-	&& apt-get install -y nginx procps \
+	&& apt-get install -y nginx \
 	&& mkdir -p /etc/nginx/ssl \
 	&& touch /run/nginx.pid \
 	&& echo "${CERTS_CRT}" > /etc/nginx/ssl/abiru.42.fr.crt \

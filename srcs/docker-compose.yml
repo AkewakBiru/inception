@@ -23,7 +23,6 @@ services:
     build:
       context: ./requirements/nginx
       args:
-        - DOMAIN_NAME=${DOMAIN_NAME}
         - CERTS_KEY=${CERTS_KEY}
         - CERTS_CRT=${CERTS_CRT}
     image: nginx
@@ -44,7 +43,6 @@ services:
       context: ./requirements/wordpress
       args:
         - DOMAIN_NAME=${DOMAIN_NAME}
-        - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
         - MYSQL_USER=${MYSQL_USER}
         - MYSQL_PASSWORD=${MYSQL_PASSWORD}
         - MYSQL_DB=${MYSQL_DB}
@@ -66,27 +64,17 @@ services:
       - mariadb
     restart: on-failure
 
-  test:
-    build:
-      context: ./requirements/test
-    image: test
-    container_name: test
-    networks:
-      - myNet
-
 networks:
   myNet:
 
 volumes:
   mariadb-vol:
-    driver: local
     driver_opts:
       type: local
       o: "bind"
       device: $HOME/data/mariadb
 
   wordpress-vol:
-    driver: local
     driver_opts:
       type: local
       o: "bind"
